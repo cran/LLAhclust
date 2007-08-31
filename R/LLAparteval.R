@@ -54,7 +54,7 @@ psumunif <- function(y,n)
 
 ## Computes the quality of the partitions compatible with the hierarchy
 
-LLAparteval <- function(tree, s, m=NULL)
+LLAparteval.old <- function(tree, s, m=NULL)
 {
     if (class(tree) != "hclust")
         stop("invalid tree")
@@ -103,15 +103,17 @@ LLAparteval <- function(tree, s, m=NULL)
         {
             f <- matrix(0,n,n)
             part <- cutree(tree,i)
+
+
             for (j in 1:i)
             {
-                p <- part
-                p[p!=j] <- 0 
-                p[p==j] <- 1
-                f <- f + p %*% t(p) 
+              p <- part
+              p[p!=j] <- 0 
+              p[p==j] <- 1
+              f <- f + p %*% t(p) 
             }
-            diag(f) <- numeric(n)
             
+            diag(f) <- numeric(n)
             B1 <- sum(f)^2
             B2 <- sum(margin.table(f,1)^2)
             B3 <- sum(f)
@@ -119,6 +121,7 @@ LLAparteval <- function(tree, s, m=NULL)
             v <- - A1 * B1 / d1^2 + 2 * A3 * B3 / d1 + 4 * (A2 - A3) * (B2 - B3) / d2 +
                 (A1 - 4 * A2 + 2 * A3) * (B1 - 4 * B2 + 2 * B3) / d3
 
+            idx <- v<=0
             if (v <= 0)
                 global[i] <- NA
             else
@@ -173,3 +176,114 @@ LLAparteval <- function(tree, s, m=NULL)
 }
 
 #############################################################################
+
+
+## Computes the quality of the partitions compatible with the hierarchy
+
+LLAparteval <- function(tree, s, m=NULL)
+{
+    if (class(tree) != "hclust")
+        stop("invalid tree")
+    
+    if (class(s) != "LLAsim")
+        stop("invalid similarities")
+    
+    n <- as.integer(attr(s, "Size"))
+    probabilistic <- attr(s, "Probabilistic")
+    if(is.null(n) || is.null(probabilistic))
+	stop("invalid similarities")
+    
+    len <- as.integer(n*(n-1)/2)
+    if(length(s) != len)
+        (if (length(s) < len) stop else warning)("similarities of improper length")
+    
+    if (length(tree$height) != n -1)
+        stop("the tree was not obtained from these similarlities")
+
+    if (!is.null(m))
+    {
+        if(!is.numeric(m <- as.integer(m)) || m < 2 || m > n)
+            stop(paste("m should be an integer greater than 2 and lower than",n))
+    }
+    else
+        m <- n
+    
+    if (probabilistic == FALSE) ## LLA partition index
+    {   
+        s <- as.matrix(s)
+
+        ## computations necessary for the variance
+        A1 <- sum(s)^2
+        A2 <- sum(margin.table(s,1)^2)
+        A3 <- sum(s^2)
+        d1 <- n * (n - 1)
+        d2 <- n * (n - 1) * (n - 2)
+        d3 <- n * (n - 1) * (n - 2) * (n - 3)
+        
+        global <- numeric(m)
+        local <- numeric(m)
+        local[m] <- NA
+
+        ## Nolwenn Le Meur
+        ## for each partition 
+        for (i in m:2)
+        {
+            f <- matrix(0,n,n)
+            part <- as.integer(cutree(tree,i))
+            f= .Call("inPartition", part, package="LLAhclust")
+            
+            diag(f) <- numeric(n)
+            B1 <- sum(f)^2
+            B2 <- sum(margin.table(f,1)^2)
+            B3 <- sum(f)
+            
+            v <- - A1 * B1 / d1^2 + 2 * A3 * B3 / d1 + 4 * (A2 - A3) * (B2 - B3) / d2 +
+                (A1 - 4 * A2 + 2 * A3) * (B1 - 4 * B2 + 2 * B3) / d3
+
+            idx <- v<=0
+            if (v <= 0)
+                global[i] <- NA
+            else
+                global[i] <- (sum(s * f) - sqrt(A1 * B1) / d1)/sqrt(v)
+            if (i < m)
+                local[i] <- global[i] - global[i+1]
+        }
+
+        res <- data.frame(global.stat = global[m:2],local.stat = local[m:2])
+        row.names(res) <- m:2
+        return(res)
+    }
+    else ## p-value combination methods
+    {
+        fisher.inter <- rep(NA,m)
+        tippett.inter <- rep(NA,m)
+        min.inter <- rep(NA,m)
+        max.intra <- rep(NA,m)
+        
+        ## for each partition 
+        for (i in m:1)
+        {
+            f <- matrix(0,n,n)
+            part <- as.integer(cutree(tree,i))
+            f= .Call("inPartition", part, package="LLAhclust")
+            f <- f[row(f) > col(f)]
+
+            if (i > 1)
+            {
+                len.inter <- length(f[f == 0])
+                tippett.inter[i] <- 1 - max(s[f == 0])^len.inter
+                fisher.inter[i] <- pchisq(sum(-2 * log(1 - s[f == 0])), 2 * len.inter, lower.tail = FALSE)
+                min.inter[i] <- min(1 - s[f == 0])
+            }
+
+            if (i < n)
+                max.intra[i] <- max(1 - s[f == 1])
+        }
+        
+        res <- data.frame(tippett.inter = tippett.inter[m:1], fisher.inter = fisher.inter[m:1], 
+			min.inter = min.inter[m:1], max.intra = max.intra[m:1])
+
+        row.names(res) <- m:1
+        return(res)
+    }
+}

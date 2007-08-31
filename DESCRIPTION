@@ -1,10 +1,10 @@
 Package: LLAhclust
-Version: 0.2-1
+Version: 0.2-2
 Date: 2007-31-08
 Title: Hierarchical clustering of variables or objects based on the
         likelihood linkage analysis method
 Author: Ivan Kojadinovic, Israël-César Lerman, Philippe Peter
-Maintainer: Ivan Kojadinovic <ivan@stat.auckland.ac.nz>
+Maintainer: ORPHANED
 Description: The likelihood linkage analysis is a general agglomerative
         hierarchical clustering method developed in France by Lerman in
         a long series of research articles and books. Initially
@@ -23,6 +23,10 @@ Description: The likelihood linkage analysis is a general agglomerative
         hierarchy can be computed.
 Depends: R(>= 2.1.0)
 Encoding: latin1
-License: CeCILL 2 (GNU GPL 2 compatible)
+License: CeCILL-2
 URL: http://www.stat.auckland.ac.nz/~ivan/LLAhclust
-Packaged: Fri Aug 31 11:42:11 2007; ivan
+Packaged: Fri Feb 27 08:33:40 2009; hornik
+X-CRAN-Comment: Orphaned on 2012-06-03 as requested by the original
+        maintainer, ivan.kojadinovic@univ-pau.fr
+Repository: CRAN
+Date/Publication: 2009-02-27 07:40:31

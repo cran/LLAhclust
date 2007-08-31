@@ -65,8 +65,8 @@ empcopula.simulate(n, N = 2000)
 data(USArrests)
 
 ## Compute similarities between variables using the test of
-## independence à la Deheuvels based on the empirical copula
-## process recently studied by Genest and Rémillard: 
+## independence a la Deheuvels based on the empirical copula
+## process recently studied by Genest and Remillard: 
 s <- LLAsimvar(USArrests, method = "empirical.copula")
 s
 

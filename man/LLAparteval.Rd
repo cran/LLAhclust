@@ -26,7 +26,6 @@ LLAparteval(tree, s, m=NULL)
     \code{LLAsimvar}, \code{LLAsimobj} or \code{as.LLAsim}.}
   \item{m}{Integer. If set, the quality of the m coarsest partitions
     only is evaluated.}
- }
 }
 
 
