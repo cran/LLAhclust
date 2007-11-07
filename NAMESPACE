@@ -1,0 +1,19 @@
+## Namespace for LLAhclust
+
+## Generics and functions defined in this package
+export("LLAhclust",
+       "LLAsimobj",
+       "LLAsimvar",
+       "empcopula.simulate",
+       "LLAparteval",
+       "names.LLAsim",
+       "format.LLAsim",
+       "as.matrix.LLAsim",
+       "as.LLAsim",
+       "print.LLAsim"
+       )
+
+#exportMethods()
+#exportClasses()
+
+useDynLib("LLAhclust")
